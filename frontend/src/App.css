@@ -50,6 +50,37 @@ body {
   gap: 10px;
 }
 
+.controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.controls-row label {
+  font-size: 0.9rem;
+  color: #34495e;
+  font-weight: 500;
+}
+
+.controls-row input[type="range"] {
+  width: 120px;
+}
+
+.metrics-box {
+  background: #e8f4f8;
+  border: 1px solid #bce0ed;
+  border-radius: 4px;
+  padding: 10px;
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: #2c3e50;
+}
+
+.metrics-box strong {
+  color: #2980b9;
+}
+
 h2 {
   font-size: 1.1rem;
   margin-bottom: 5px;

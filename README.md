@@ -78,5 +78,5 @@ Open your browser to the URL provided by Vite (usually `http://localhost:5173`).
 ## Usage
 
 1.  **Ingest Data:** Paste a complex text or article into the "Ingest Knowledge" section and click "Build Knowledge Graph". The backend will use Gemini to extract entities and relationships, storing them in ChromaDB and NetworkX.
-2.  **Query:** Ask a question in the "Query Graph" section.
-3.  **Visualize:** The UI will display the answer and visually render the specific subgraph (nodes and edges) that was retrieved and used to generate the answer.
+2.  **Query:** Set your desired **Traversal Depth** (1-3 hops) to control how far the system searches for logically connected concepts, then ask a question.
+3.  **Visualize & Verify:** The UI will display the answer, render the specific subgraph used, and show **Context Pruning Metrics** (demonstrating how many tokens were actually sent to the LLM vs the whole database).

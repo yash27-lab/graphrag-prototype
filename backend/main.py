@@ -33,6 +33,7 @@ G = nx.Graph()
 
 class QueryRequest(BaseModel):
     query: str
+    depth: int = 1
 
 class IngestRequest(BaseModel):
     text: str
@@ -96,23 +97,30 @@ def query_graphrag(req: QueryRequest):
     if not client:
         raise HTTPException(status_code=500, detail="GenAI client not initialized")
 
-    # 1. Vector Search
+    # 1. Vector Search: Find starting nodes
     results = collection.query(
         query_texts=[req.query],
         n_results=3
     )
 
     if not results["ids"] or not results["ids"][0]:
-        return {"answer": "I don't have enough context to answer that.", "graph": {"nodes": [], "links": []}}
+        return {"answer": "I don't have enough context to answer that.", "graph": {"nodes": [], "links": []}, "metrics": {}}
 
     start_nodes = results["ids"][0]
     
-    # 2. Graph Traversal
+    # 2. Graph Traversal: Multi-hop reasoning based on depth
     context_nodes = set(start_nodes)
-    for node in start_nodes:
-        if node in G:
-            neighbors = list(G.neighbors(node))
-            context_nodes.update(neighbors)
+    current_level = set(start_nodes)
+    
+    for _ in range(req.depth):
+        next_level = set()
+        for node in current_level:
+            if node in G:
+                for neighbor in G.neighbors(node):
+                    if neighbor not in context_nodes:
+                        next_level.add(neighbor)
+                        context_nodes.add(neighbor)
+        current_level = next_level
 
     context_text = "Entities:\n"
     nodes_data = []
@@ -132,7 +140,10 @@ def query_graphrag(req: QueryRequest):
             context_text += f"- {u} --[{rel}]--> {v}: {desc}\n"
             links_data.append({"source": u, "target": v, "label": rel})
 
-    # 3. Synthesis
+    # Estimate tokens to showcase pruning efficiency
+    estimated_tokens = int(len(context_text.split()) * 1.3)
+
+    # 3. Synthesis: Generate answer from pruned context
     synthesis_prompt = f"""
     Answer the user's query based ONLY on the provided Knowledge Graph context.
     
@@ -153,5 +164,9 @@ def query_graphrag(req: QueryRequest):
             "nodes": nodes_data,
             "links": links_data
         },
-        "context_used": context_text
+        "metrics": {
+            "nodes_retrieved": len(context_nodes),
+            "depth_used": req.depth,
+            "estimated_tokens": estimated_tokens
+        }
     }

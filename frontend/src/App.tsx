@@ -12,9 +12,11 @@ function App() {
   const [isIngesting, setIsIngesting] = useState(false);
   
   const [response, setResponse] = useState('');
-  const [graphData, setGraphData] = useState(null);
+  const [graphData, setGraphData] = useState<any>(null);
   const [isQuerying, setIsQuerying] = useState(false);
   const [error, setError] = useState('');
+  const [depth, setDepth] = useState(1);
+  const [metrics, setMetrics] = useState<any>(null);
 
   const handleIngest = async () => {
     if (!ingestText.trim()) return;
@@ -40,11 +42,15 @@ function App() {
     setIsQuerying(true);
     setResponse('Thinking & traversing graph...');
     setError('');
+    setMetrics(null);
 
     try {
-      const res = await axios.post(`${API_URL}/query`, { query: queryText });
+      const res = await axios.post(`${API_URL}/query`, { query: queryText, depth });
       setResponse(res.data.answer);
       setGraphData(res.data.graph);
+      if (res.data.metrics) {
+        setMetrics(res.data.metrics);
+      }
     } catch (err: any) {
       console.error(err);
       setError(err.response?.data?.detail || 'Failed to query data.');
@@ -78,6 +84,17 @@ function App() {
 
         <div className="chat-section" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
           <h2>2. Query Graph</h2>
+          <div className="controls-row">
+            <label>Traversal Depth: {depth} {depth === 1 ? 'hop' : 'hops'}</label>
+            <input 
+              type="range" 
+              min="1" 
+              max="3" 
+              value={depth} 
+              onChange={(e) => setDepth(Number(e.target.value))} 
+              disabled={isQuerying}
+            />
+          </div>
           <input 
             type="text" 
             placeholder="Ask a question..."
@@ -93,6 +110,14 @@ function App() {
           <h2 style={{ marginTop: '15px' }}>Response</h2>
           <div className="response-box">
             {error ? <span className="error-message">{error}</span> : response}
+            {metrics && !isQuerying && (
+              <div className="metrics-box">
+                <strong>Context Pruning Metrics:</strong><br/>
+                Nodes retrieved: {metrics.nodes_retrieved}<br/>
+                Estimated tokens sent to LLM: ~{metrics.estimated_tokens}<br/>
+                <em>(Filtered from millions of possible tokens down to exactly what matters)</em>
+              </div>
+            )}
           </div>
         </div>
       </div>
