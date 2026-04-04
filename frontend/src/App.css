@@ -14,12 +14,32 @@
   --radius: 8px;
   --shadow-sm: 0 2px 4px rgba(0,0,0,0.02);
   --shadow-md: 0 4px 6px rgba(0,0,0,0.04);
+  --graph-overlay-bg: rgba(255, 255, 255, 0.85);
+  --input-bg: #fff;
+}
+
+[data-theme='dark'] {
+  --bg-main: #111111;
+  --bg-sidebar: #0a0a0a;
+  --text-primary: #ededed;
+  --text-secondary: #a1a1aa;
+  --border-color: #333333;
+  --accent-color: #ffffff;
+  --accent-hover: #cccccc;
+  --focus-ring: rgba(255, 255, 255, 0.2);
+  --error: #ff4444;
+  --success: #3291ff;
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.2);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
+  --graph-overlay-bg: rgba(10, 10, 10, 0.85);
+  --input-bg: #1a1a1a;
 }
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
 body {
@@ -27,6 +47,7 @@ body {
   background-color: var(--bg-main);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
+  overflow: hidden;
 }
 
 .app-container {
@@ -34,6 +55,13 @@ body {
   height: 100vh;
   width: 100vw;
   overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+    overflow-y: auto;
+  }
 }
 
 .sidebar {
@@ -46,6 +74,14 @@ body {
   box-shadow: var(--shadow-sm);
   z-index: 10;
   overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
 }
 
 .header {
@@ -65,6 +101,24 @@ body {
 .header p {
   font-size: 0.85rem;
   color: var(--text-secondary);
+}
+
+.theme-toggle {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+.theme-toggle:hover {
+  background: var(--border-color);
+  border-color: transparent;
 }
 
 .ingest-section, .chat-section {
@@ -90,19 +144,19 @@ textarea, input[type="text"] {
   border-radius: var(--radius);
   font-family: inherit;
   font-size: 0.95rem;
-  background-color: #fff;
+  background-color: var(--input-bg);
   color: var(--text-primary);
   transition: all 0.2s ease;
   box-shadow: var(--shadow-sm);
 }
 
 textarea::placeholder, input[type="text"]::placeholder {
-  color: #999;
+  color: var(--text-secondary);
 }
 
 textarea:focus, input[type="text"]:focus {
   outline: none;
-  border-color: #000;
+  border-color: var(--accent-color);
   box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
@@ -114,7 +168,7 @@ textarea {
 
 button {
   background-color: var(--accent-color);
-  color: white;
+  color: var(--bg-sidebar);
   border: 1px solid var(--accent-color);
   padding: 12px 16px;
   border-radius: var(--radius);
@@ -131,8 +185,8 @@ button:hover:not(:disabled) {
 }
 
 button:disabled {
-  background-color: var(--bg-main);
-  color: #999;
+  background-color: var(--border-color);
+  color: var(--text-secondary);
   border-color: var(--border-color);
   cursor: not-allowed;
   box-shadow: none;
@@ -143,7 +197,7 @@ button:disabled {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 4px;
-  background: var(--bg-main);
+  background: var(--input-bg);
   padding: 10px 14px;
   border-radius: var(--radius);
   border: 1px solid var(--border-color);
@@ -163,7 +217,7 @@ button:disabled {
 
 .response-box {
   flex-grow: 1;
-  background: var(--bg-main);
+  background: var(--input-bg);
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
   padding: 16px;
@@ -176,7 +230,7 @@ button:disabled {
 }
 
 .metrics-box {
-  background: #ffffff;
+  background: var(--bg-sidebar);
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
   padding: 12px;
@@ -197,7 +251,7 @@ button:disabled {
   display: block;
   margin-top: 6px;
   font-style: normal;
-  color: #888;
+  color: var(--text-secondary);
   font-size: 0.75rem;
 }
 
@@ -226,11 +280,18 @@ button:disabled {
   height: 100vh;
 }
 
+@media (max-width: 768px) {
+  .main-content {
+    height: 60vh;
+    min-height: 400px;
+  }
+}
+
 .graph-overlay {
   position: absolute;
   top: 24px;
   left: 24px;
-  background: rgba(255, 255, 255, 0.85);
+  background: var(--graph-overlay-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   padding: 16px 20px;
@@ -259,6 +320,6 @@ button:disabled {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #999;
+  color: var(--text-secondary);
   font-size: 0.95rem;
 }

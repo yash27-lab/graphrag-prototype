@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Moon, Sun } from 'lucide-react';
 import './App.css';
 import { GraphVisualization } from './components/GraphVisualization';
 
@@ -17,6 +18,20 @@ function App() {
   const [error, setError] = useState('');
   const [depth, setDepth] = useState(1);
   const [metrics, setMetrics] = useState<any>(null);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    setTheme(savedTheme as 'light' | 'dark');
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+  };
 
   const handleIngest = async () => {
     if (!ingestText.trim()) return;
@@ -69,7 +84,12 @@ function App() {
     <div className="app-container">
       <div className="sidebar">
         <div className="header">
-          <h1>GraphRAG Prototype</h1>
+          <div className="header-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h1>GraphRAG Prototype</h1>
+            <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
+              {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+            </button>
+          </div>
           <p>Powered by Neo4j/NetworkX & Gemini</p>
         </div>
 
@@ -134,7 +154,7 @@ function App() {
             <p>Showing {graphData.nodes.length} entities & {graphData.links.length} connections</p>
           </div>
         )}
-        <GraphVisualization data={graphData} />
+        <GraphVisualization data={graphData} theme={theme} />
       </div>
     </div>
   );

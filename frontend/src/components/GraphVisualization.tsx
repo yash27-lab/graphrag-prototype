@@ -8,9 +8,10 @@ interface GraphData {
 
 interface GraphVisualizationProps {
   data: GraphData | null;
+  theme?: 'light' | 'dark';
 }
 
-export const GraphVisualization: React.FC<GraphVisualizationProps> = ({ data }) => {
+export const GraphVisualization: React.FC<GraphVisualizationProps> = ({ data, theme = 'light' }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const fgRef = useRef<any>();
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
@@ -63,7 +64,7 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({ data }) 
         linkDirectionalArrowRelPos={1}
         linkCurvature={0.25}
         linkLabel="label"
-        linkColor={() => '#cccccc'}
+        linkColor={() => theme === 'dark' ? '#444444' : '#cccccc'}
         nodeCanvasObject={(node, ctx, globalScale) => {
           const label = node.label || '';
           const fontSize = 12/globalScale;
@@ -72,7 +73,7 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({ data }) 
           const bckgDimensions = [textWidth + (fontSize * 1.2), fontSize + (fontSize * 0.8)]; // some padding
 
           // Node pill background
-          ctx.fillStyle = '#ffffff';
+          ctx.fillStyle = theme === 'dark' ? '#222222' : '#ffffff';
           ctx.beginPath();
           if (ctx.roundRect) {
             ctx.roundRect(
@@ -93,14 +94,14 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({ data }) 
           ctx.fill();
 
           // Node pill border
-          ctx.strokeStyle = (node as any).color || '#111111';
+          ctx.strokeStyle = (node as any).color || (theme === 'dark' ? '#ededed' : '#111111');
           ctx.lineWidth = 1.5 / globalScale;
           ctx.stroke();
 
           // Text
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillStyle = '#111111';
+          ctx.fillStyle = theme === 'dark' ? '#ededed' : '#111111';
           ctx.fillText(label, node.x!, node.y!);
           
           (node as any).__bckgDimensions = bckgDimensions; // to re-use in nodePointerAreaPaint
