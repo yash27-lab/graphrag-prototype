@@ -16,24 +16,20 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({ data }) 
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
 
   useEffect(() => {
-    if (containerRef.current) {
-      setDimensions({
-        width: containerRef.current.clientWidth,
-        height: containerRef.current.clientHeight,
-      });
-    }
-    
-    const handleResize = () => {
-      if (containerRef.current) {
+    if (!containerRef.current) return;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
         setDimensions({
-          width: containerRef.current.clientWidth,
-          height: containerRef.current.clientHeight,
+          width: entry.contentRect.width,
+          height: entry.contentRect.height,
         });
       }
-    };
+    });
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    resizeObserver.observe(containerRef.current);
+
+    return () => resizeObserver.disconnect();
   }, []);
 
   useEffect(() => {
@@ -54,7 +50,7 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({ data }) 
   }
 
   return (
-    <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
+    <div ref={containerRef} style={{ flexGrow: 1, width: '100%', position: 'relative', overflow: 'hidden' }}>
       <ForceGraph2D
         ref={fgRef}
         width={dimensions.width}
@@ -67,20 +63,44 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({ data }) 
         linkDirectionalArrowRelPos={1}
         linkCurvature={0.25}
         linkLabel="label"
-        linkColor={() => '#b0b0b0'}
+        linkColor={() => '#cccccc'}
         nodeCanvasObject={(node, ctx, globalScale) => {
           const label = node.label || '';
           const fontSize = 12/globalScale;
-          ctx.font = `${fontSize}px Sans-Serif`;
+          ctx.font = `500 ${fontSize}px Inter, sans-serif`;
           const textWidth = ctx.measureText(label).width;
-          const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2); // some padding
+          const bckgDimensions = [textWidth + (fontSize * 1.2), fontSize + (fontSize * 0.8)]; // some padding
 
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-          ctx.fillRect(node.x! - bckgDimensions[0] / 2, node.y! - bckgDimensions[1] / 2, bckgDimensions[0], bckgDimensions[1]);
+          // Node pill background
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          if (ctx.roundRect) {
+            ctx.roundRect(
+              node.x! - bckgDimensions[0] / 2, 
+              node.y! - bckgDimensions[1] / 2, 
+              bckgDimensions[0], 
+              bckgDimensions[1], 
+              4 / globalScale
+            );
+          } else {
+            ctx.rect(
+              node.x! - bckgDimensions[0] / 2, 
+              node.y! - bckgDimensions[1] / 2, 
+              bckgDimensions[0], 
+              bckgDimensions[1]
+            );
+          }
+          ctx.fill();
 
+          // Node pill border
+          ctx.strokeStyle = (node as any).color || '#111111';
+          ctx.lineWidth = 1.5 / globalScale;
+          ctx.stroke();
+
+          // Text
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillStyle = (node as any).color || '#000';
+          ctx.fillStyle = '#111111';
           ctx.fillText(label, node.x!, node.y!);
           
           (node as any).__bckgDimensions = bckgDimensions; // to re-use in nodePointerAreaPaint
