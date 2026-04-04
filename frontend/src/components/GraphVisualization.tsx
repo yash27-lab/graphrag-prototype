@@ -47,14 +47,14 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({ data }) 
 
   if (!data || data.nodes.length === 0) {
     return (
-      <div ref={containerRef} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa' }}>
+      <div className="empty-state" ref={containerRef}>
         <p>No graph data to display. Ingest text and ask a question.</p>
       </div>
     );
   }
 
   return (
-    <div ref={containerRef} style={{ width: '100%', height: '100%', background: '#fff' }}>
+    <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
       <ForceGraph2D
         ref={fgRef}
         width={dimensions.width}
