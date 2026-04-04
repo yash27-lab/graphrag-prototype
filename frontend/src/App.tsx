@@ -28,6 +28,11 @@ function App() {
       const res = await axios.post(`${API_URL}/ingest`, { text: ingestText });
       setIngestStatus(`Success! Extracted ${res.data.entities_count} entities and ${res.data.relationships_count} relationships.`);
       setIngestText('');
+      if (res.data.graph) {
+        setGraphData(res.data.graph);
+        setResponse('Knowledge Graph successfully updated! You can now query it or visualize the full structure.');
+        setMetrics(null);
+      }
     } catch (err: any) {
       console.error(err);
       setError(err.response?.data?.detail || 'Failed to ingest data. Is the backend running and API key set?');

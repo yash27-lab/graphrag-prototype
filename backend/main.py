@@ -90,7 +90,23 @@ def ingest_text(req: IngestRequest):
         if source and target:
             G.add_edge(source, target, relationship=rel.get("relationship", ""), description=rel.get("description", ""))
 
-    return {"status": "success", "entities_count": len(entities), "relationships_count": len(relationships)}
+    # Serialize the full graph to return it
+    all_nodes = []
+    all_links = []
+    for n, data in G.nodes(data=True):
+        all_nodes.append({"id": n, "label": n, "group": data.get('type', 'Unknown')})
+    for u, v, data in G.edges(data=True):
+        all_links.append({"source": u, "target": v, "label": data.get('relationship', '')})
+
+    return {
+        "status": "success", 
+        "entities_count": len(entities), 
+        "relationships_count": len(relationships),
+        "graph": {
+            "nodes": all_nodes,
+            "links": all_links
+        }
+    }
 
 @app.post("/query")
 def query_graphrag(req: QueryRequest):
