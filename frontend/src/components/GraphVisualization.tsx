@@ -9,9 +9,10 @@ interface GraphData {
 interface GraphVisualizationProps {
   data: GraphData | null;
   theme?: 'light' | 'dark';
+  repulsion?: number;
 }
 
-export const GraphVisualization: React.FC<GraphVisualizationProps> = ({ data, theme = 'light' }) => {
+export const GraphVisualization: React.FC<GraphVisualizationProps> = ({ data, theme = 'light', repulsion = 400 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const fgRef = useRef<any>();
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
@@ -35,12 +36,13 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({ data, th
 
   useEffect(() => {
     if (data && fgRef.current) {
+      fgRef.current.d3Force('charge').strength(-repulsion);
       // Zoom to fit on new data
       setTimeout(() => {
         fgRef.current.zoomToFit(400, 50);
       }, 500);
     }
-  }, [data]);
+  }, [data, repulsion]);
 
   if (!data || data.nodes.length === 0) {
     return (

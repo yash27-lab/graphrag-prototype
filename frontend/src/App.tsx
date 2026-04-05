@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, Settings, X } from 'lucide-react';
 import './App.css';
 import { GraphVisualization } from './components/GraphVisualization';
 
@@ -20,10 +20,20 @@ function App() {
   const [metrics, setMetrics] = useState<any>(null);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
+  // Settings State
+  const [showSettings, setShowSettings] = useState(false);
+  const [apiKey, setApiKey] = useState('');
+  const [model, setModel] = useState('gemini-2.5-flash');
+  const [repulsion, setRepulsion] = useState(400);
+
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') || 'light';
     setTheme(savedTheme as 'light' | 'dark');
     document.documentElement.setAttribute('data-theme', savedTheme);
+
+    setApiKey(localStorage.getItem('apiKey') || '');
+    setModel(localStorage.getItem('model') || 'gemini-2.5-flash');
+    setRepulsion(Number(localStorage.getItem('repulsion')) || 400);
   }, []);
 
   const toggleTheme = () => {
@@ -33,6 +43,20 @@ function App() {
     document.documentElement.setAttribute('data-theme', newTheme);
   };
 
+  const handleSaveSettings = () => {
+    localStorage.setItem('apiKey', apiKey);
+    localStorage.setItem('model', model);
+    localStorage.setItem('repulsion', repulsion.toString());
+    setShowSettings(false);
+  };
+
+  const getHeaders = () => {
+    if (apiKey.trim()) {
+      return { 'x-api-key': apiKey.trim() };
+    }
+    return {};
+  };
+
   const handleIngest = async () => {
     if (!ingestText.trim()) return;
     setIsIngesting(true);
@@ -40,7 +64,7 @@ function App() {
     setError('');
     
     try {
-      const res = await axios.post(`${API_URL}/ingest`, { text: ingestText });
+      const res = await axios.post(`${API_URL}/ingest`, { text: ingestText, model }, { headers: getHeaders() });
       setIngestStatus(`Success! Extracted ${res.data.entities_count} entities and ${res.data.relationships_count} relationships.`);
       setIngestText('');
       if (res.data.graph) {
@@ -65,7 +89,7 @@ function App() {
     setMetrics(null);
 
     try {
-      const res = await axios.post(`${API_URL}/query`, { query: queryText, depth });
+      const res = await axios.post(`${API_URL}/query`, { query: queryText, depth, model }, { headers: getHeaders() });
       setResponse(res.data.answer);
       setGraphData(res.data.graph);
       if (res.data.metrics) {
@@ -86,9 +110,14 @@ function App() {
         <div className="header">
           <div className="header-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h1>GraphRAG Prototype</h1>
-            <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
-              {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
-            </button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button className="icon-btn" onClick={() => setShowSettings(true)} aria-label="Settings">
+                <Settings size={18} />
+              </button>
+              <button className="icon-btn" onClick={toggleTheme} aria-label="Toggle theme">
+                {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+              </button>
+            </div>
           </div>
           <p>Powered by Neo4j/NetworkX & Gemini</p>
         </div>
@@ -154,8 +183,55 @@ function App() {
             <p>Showing {graphData.nodes.length} entities & {graphData.links.length} connections</p>
           </div>
         )}
-        <GraphVisualization data={graphData} theme={theme} />
+        <GraphVisualization data={graphData} theme={theme} repulsion={repulsion} />
       </div>
+
+      {showSettings && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>Power Settings</h2>
+              <button className="icon-btn" onClick={() => setShowSettings(false)}><X size={20} /></button>
+            </div>
+            
+            <div className="setting-group">
+              <label>Gemini API Key</label>
+              <input 
+                type="password" 
+                placeholder="AIzaSy..." 
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+              />
+              <p className="setting-hint">If left blank, the backend's environment variable will be used.</p>
+            </div>
+
+            <div className="setting-group">
+              <label>Extraction & Synthesis Model</label>
+              <select value={model} onChange={(e) => setModel(e.target.value)}>
+                <option value="gemini-2.5-flash">Gemini 2.5 Flash (Fast)</option>
+                <option value="gemini-2.5-pro">Gemini 2.5 Pro (Deep Reasoning)</option>
+              </select>
+              <p className="setting-hint">Pro extracts significantly better graphs from complex documents.</p>
+            </div>
+
+            <div className="setting-group">
+              <label>Graph Physics: Node Repulsion ({repulsion})</label>
+              <input 
+                type="range" 
+                min="100" 
+                max="1000" 
+                step="50"
+                value={repulsion} 
+                onChange={(e) => setRepulsion(Number(e.target.value))} 
+                style={{ width: '100%' }}
+              />
+              <p className="setting-hint">Increase this if your graph nodes are too clumped together.</p>
+            </div>
+
+            <button className="save-btn" onClick={handleSaveSettings}>Save & Close</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -2,9 +2,10 @@ import os
 import json
 import networkx as nx
 import chromadb
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from typing import Optional
 from google import genai
 from google.genai import types
 
@@ -18,13 +19,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize GenAI Client
-# Expects GEMINI_API_KEY in environment
-try:
-    client = genai.Client()
-except Exception as e:
-    print(f"Failed to initialize GenAI client. Is GEMINI_API_KEY set? {e}")
-    client = None
+def get_client(api_key: Optional[str] = None):
+    if api_key:
+        return genai.Client(api_key=api_key)
+    try:
+        return genai.Client()
+    except Exception:
+        return None
 
 # Initialize ChromaDB and NetworkX
 chroma_client = chromadb.Client()
@@ -34,14 +35,17 @@ G = nx.Graph()
 class QueryRequest(BaseModel):
     query: str
     depth: int = 1
+    model: str = 'gemini-2.5-flash'
 
 class IngestRequest(BaseModel):
     text: str
+    model: str = 'gemini-2.5-flash'
 
 @app.post("/ingest")
-def ingest_text(req: IngestRequest):
+def ingest_text(req: IngestRequest, x_api_key: Optional[str] = Header(None)):
+    client = get_client(x_api_key)
     if not client:
-        raise HTTPException(status_code=500, detail="GenAI client not initialized")
+        raise HTTPException(status_code=500, detail="GenAI client not initialized. Provide an API key in settings or environment.")
     
     prompt = f"""
     Extract key entities and their relationships from the following text.
@@ -58,7 +62,7 @@ def ingest_text(req: IngestRequest):
     """
     
     response = client.models.generate_content(
-        model='gemini-2.5-flash',
+        model=req.model,
         contents=prompt,
         config=types.GenerateContentConfig(
             response_mime_type="application/json",
@@ -109,9 +113,10 @@ def ingest_text(req: IngestRequest):
     }
 
 @app.post("/query")
-def query_graphrag(req: QueryRequest):
+def query_graphrag(req: QueryRequest, x_api_key: Optional[str] = Header(None)):
+    client = get_client(x_api_key)
     if not client:
-        raise HTTPException(status_code=500, detail="GenAI client not initialized")
+        raise HTTPException(status_code=500, detail="GenAI client not initialized. Provide an API key in settings or environment.")
 
     # 1. Vector Search: Find starting nodes
     results = collection.query(
@@ -170,7 +175,7 @@ def query_graphrag(req: QueryRequest):
     """
     
     response = client.models.generate_content(
-        model='gemini-2.5-flash',
+        model=req.model,
         contents=synthesis_prompt
     )
 
