@@ -8,20 +8,27 @@ from pydantic import BaseModel
 from typing import Optional
 from google import genai
 from google.genai import types
+from dotenv import load_dotenv
+
+# Load environment variables from a .env file if it exists
+load_dotenv()
 
 app = FastAPI()
 
+# Secure CORS: Only allow local frontend development servers to access this backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
 def get_client(api_key: Optional[str] = None):
-    if api_key:
-        return genai.Client(api_key=api_key)
+    # Prioritize client-provided key from Settings UI, fallback to local .env
+    final_key = api_key or os.getenv("GEMINI_API_KEY")
+    if final_key:
+        return genai.Client(api_key=final_key)
     try:
         return genai.Client()
     except Exception:

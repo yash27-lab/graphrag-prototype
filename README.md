@@ -39,11 +39,14 @@ Activate the virtual environment:
 source venv/bin/activate
 ```
 
-Set your API Key:
+Install backend dependencies:
 
 ```bash
-export GEMINI_API_KEY="your-api-key-here"
+pip install fastapi uvicorn networkx chromadb pydantic google-genai fastapi-cors python-dotenv
 ```
+
+*(Optional) Configure Local Security:* 
+To avoid pasting your API key in the frontend, you can securely configure the backend. Rename `backend/.env.example` to `backend/.env` and paste your key inside.
 
 Start the FastAPI server:
 
