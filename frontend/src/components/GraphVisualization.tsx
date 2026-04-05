@@ -67,6 +67,10 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({ data, th
         linkCurvature={0.25}
         linkLabel="label"
         linkColor={() => theme === 'dark' ? '#444444' : '#cccccc'}
+        linkDirectionalParticles={2}
+        linkDirectionalParticleWidth={1.5}
+        linkDirectionalParticleSpeed={0.005}
+        linkDirectionalParticleColor={() => theme === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)'}
         nodeCanvasObject={(node, ctx, globalScale) => {
           const label = node.label || '';
           const fontSize = 12/globalScale;

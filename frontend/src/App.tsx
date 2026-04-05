@@ -1,24 +1,46 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Moon, Sun, Settings, X } from 'lucide-react';
+import { Toaster, toast } from 'sonner';
 import './App.css';
 import { GraphVisualization } from './components/GraphVisualization';
 
 const API_URL = 'http://localhost:8000';
 
+// Custom hook for a beautiful typewriter effect
+const useTypewriter = (text: string, speed: number = 10) => {
+  const [displayedText, setDisplayedText] = useState('');
+
+  useEffect(() => {
+    setDisplayedText('');
+    if (!text) return;
+    
+    let i = 0;
+    const interval = setInterval(() => {
+      setDisplayedText(text.substring(0, i + 1));
+      i++;
+      if (i > text.length) clearInterval(interval);
+    }, speed);
+
+    return () => clearInterval(interval);
+  }, [text, speed]);
+
+  return displayedText;
+};
+
 function App() {
   const [ingestText, setIngestText] = useState('');
   const [queryText, setQueryText] = useState('');
-  const [ingestStatus, setIngestStatus] = useState('');
   const [isIngesting, setIsIngesting] = useState(false);
   
   const [response, setResponse] = useState('');
   const [graphData, setGraphData] = useState<any>(null);
   const [isQuerying, setIsQuerying] = useState(false);
-  const [error, setError] = useState('');
   const [depth, setDepth] = useState(1);
   const [metrics, setMetrics] = useState<any>(null);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  const animatedResponse = useTypewriter(response);
 
   // Settings State
   const [showSettings, setShowSettings] = useState(false);
@@ -48,6 +70,7 @@ function App() {
     localStorage.setItem('model', model);
     localStorage.setItem('repulsion', repulsion.toString());
     setShowSettings(false);
+    toast.success('Settings saved successfully');
   };
 
   const getHeaders = () => {
@@ -60,12 +83,11 @@ function App() {
   const handleIngest = async () => {
     if (!ingestText.trim()) return;
     setIsIngesting(true);
-    setIngestStatus('Extracting entities & relationships...');
-    setError('');
+    const loadingToast = toast.loading('Extracting entities & relationships...');
     
     try {
       const res = await axios.post(`${API_URL}/ingest`, { text: ingestText, model }, { headers: getHeaders() });
-      setIngestStatus(`Success! Extracted ${res.data.entities_count} entities and ${res.data.relationships_count} relationships.`);
+      toast.success(`Success! Extracted ${res.data.entities_count} entities and ${res.data.relationships_count} relationships.`, { id: loadingToast });
       setIngestText('');
       if (res.data.graph) {
         setGraphData(res.data.graph);
@@ -74,8 +96,7 @@ function App() {
       }
     } catch (err: any) {
       console.error(err);
-      setError(err.response?.data?.detail || 'Failed to ingest data. Is the backend running and API key set?');
-      setIngestStatus('');
+      toast.error(err.response?.data?.detail || 'Failed to ingest data. Is the backend running and API key set?', { id: loadingToast });
     } finally {
       setIsIngesting(false);
     }
@@ -84,9 +105,9 @@ function App() {
   const handleQuery = async () => {
     if (!queryText.trim()) return;
     setIsQuerying(true);
-    setResponse('Thinking & traversing graph...');
-    setError('');
+    setResponse('');
     setMetrics(null);
+    const loadingToast = toast.loading('Traversing knowledge graph...');
 
     try {
       const res = await axios.post(`${API_URL}/query`, { query: queryText, depth, model }, { headers: getHeaders() });
@@ -95,10 +116,11 @@ function App() {
       if (res.data.metrics) {
         setMetrics(res.data.metrics);
       }
+      toast.success('Response synthesized', { id: loadingToast });
     } catch (err: any) {
       console.error(err);
-      setError(err.response?.data?.detail || 'Failed to query data.');
-      setResponse('');
+      toast.error(err.response?.data?.detail || 'Failed to query data.', { id: loadingToast });
+      setResponse('An error occurred while querying the graph.');
     } finally {
       setIsQuerying(false);
     }
@@ -106,6 +128,7 @@ function App() {
 
   return (
     <div className="app-container">
+      <Toaster theme={theme} position="bottom-left" />
       <div className="sidebar">
         <div className="header">
           <div className="header-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -133,7 +156,6 @@ function App() {
           <button onClick={handleIngest} disabled={isIngesting || !ingestText.trim()}>
             {isIngesting ? 'Ingesting...' : 'Build Knowledge Graph'}
           </button>
-          {ingestStatus && <div className="status-message">{ingestStatus}</div>}
         </div>
 
         <div className="chat-section" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
@@ -163,7 +185,16 @@ function App() {
           
           <h2 style={{ marginTop: '15px' }}>Response</h2>
           <div className="response-box">
-            {error ? <span className="error-message">{error}</span> : response}
+            {isQuerying ? (
+              <div className="shimmer-loader">
+                <div className="shimmer-line"></div>
+                <div className="shimmer-line"></div>
+                <div className="shimmer-line short"></div>
+              </div>
+            ) : (
+              animatedResponse
+            )}
+            
             {metrics && !isQuerying && (
               <div className="metrics-box">
                 <strong>Context Pruning Metrics:</strong><br/>
