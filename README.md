@@ -30,10 +30,14 @@ This prototype combines vector similarity search (ChromaDB) with graph traversal
 To run the entire stack (Frontend + Backend with persistent storage) using Docker Compose:
 
 ```bash
+# macOS users: If you don't have Docker Desktop, you can install Colima:
+# brew install colima docker docker-compose
+# colima start
+
 # Set your API key (or put it in backend/.env)
 export GEMINI_API_KEY="your_api_key_here"
 
-docker-compose up --build
+docker compose up --build
 ```
 
 The frontend will be available at `http://localhost:5173` and the backend at `http://localhost:8000`. The graph data and vector embeddings are automatically persisted to disk so they survive restarts.
@@ -92,6 +96,9 @@ Open your browser to `http://localhost:5173`.
 1.  **Ingest Data:** Paste a complex text or article into the "Ingest Knowledge" section and click "Build Knowledge Graph". The backend will use Gemini to extract entities and relationships, storing them in ChromaDB and NetworkX.
 2.  **Query:** Set your desired **Traversal Depth** (1-3 hops) to control how far the system searches for logically connected concepts, then ask a question.
 3.  **Visualize & Verify:** The UI will display the answer, render the specific subgraph used, and show **Context Pruning Metrics** (demonstrating how many tokens were actually sent to the LLM vs the whole database).
+
+### Troubleshooting
+*   **"Internal Server Error" during ingestion (429 RESOURCE_EXHAUSTED):** If you switch the model to `gemini-2.5-pro` in the UI settings, you may hit the strict rate limits of the free tier. Switch back to `gemini-2.5-flash` or set up billing in your Google Cloud project.
 
 ## Benchmarks: Standard RAG vs GraphRAG
 

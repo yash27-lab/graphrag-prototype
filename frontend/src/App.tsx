@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Moon, Sun, Settings, X } from 'lucide-react';
 import { Toaster, toast } from 'sonner';

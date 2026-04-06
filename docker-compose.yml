@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   backend:
     build:
@@ -8,8 +6,6 @@ services:
       - "8000:8000"
     volumes:
       - graphrag_data:/app/data
-    env_file:
-      - ./backend/.env
     # To run without .env, you can set it via UI
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
@@ -24,3 +20,4 @@ services:
 
 volumes:
   graphrag_data:
+

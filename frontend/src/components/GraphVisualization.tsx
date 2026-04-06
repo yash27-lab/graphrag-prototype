@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 
 interface GraphData {
@@ -14,7 +14,7 @@ interface GraphVisualizationProps {
 
 export const GraphVisualization: React.FC<GraphVisualizationProps> = ({ data, theme = 'light', repulsion = 400 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const fgRef = useRef<any>();
+  const fgRef = useRef<any>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
 
   useEffect(() => {
