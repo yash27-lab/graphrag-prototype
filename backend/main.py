@@ -34,10 +34,30 @@ def get_client(api_key: Optional[str] = None):
     except Exception:
         return None
 
-# Initialize ChromaDB and NetworkX
-chroma_client = chromadb.Client()
+# Initialize ChromaDB and NetworkX with persistence
+PERSIST_DIR = "./data"
+os.makedirs(PERSIST_DIR, exist_ok=True)
+
+chroma_client = chromadb.PersistentClient(path=os.path.join(PERSIST_DIR, "chroma_db"))
 collection = chroma_client.get_or_create_collection(name="graphrag_entities")
-G = nx.Graph()
+
+GRAPH_FILE = os.path.join(PERSIST_DIR, "graph.json")
+if os.path.exists(GRAPH_FILE):
+    try:
+        with open(GRAPH_FILE, "r") as f:
+            data = json.load(f)
+            G = nx.node_link_graph(data)
+    except Exception as e:
+        print(f"Failed to load graph from {GRAPH_FILE}: {e}")
+        G = nx.Graph()
+else:
+    G = nx.Graph()
+
+def save_graph():
+    data = nx.node_link_data(G)
+    with open(GRAPH_FILE, "w") as f:
+        json.dump(data, f)
+
 
 class QueryRequest(BaseModel):
     query: str
@@ -108,6 +128,9 @@ def ingest_text(req: IngestRequest, x_api_key: Optional[str] = Header(None)):
         all_nodes.append({"id": n, "label": n, "group": data.get('type', 'Unknown')})
     for u, v, data in G.edges(data=True):
         all_links.append({"source": u, "target": v, "label": data.get('relationship', '')})
+
+    # Save to disk
+    save_graph()
 
     return {
         "status": "success", 
