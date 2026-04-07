@@ -102,10 +102,46 @@ Open your browser to `http://localhost:5173`.
 
 ## Benchmarks: Standard RAG vs GraphRAG
 
-Here are 3 multi-hop scenarios where standard RAG typically fails due to fragmented context, but GraphRAG succeeds by traversing relationships:
+To empirically demonstrate the value of GraphRAG, we have included an automated benchmarking script that runs 3 complex multi-hop scenarios. It queries the same dataset using both Standard RAG (Depth 0) and GraphRAG (Depth 2) and compares the retrieved context and answers.
 
-| Scenario | Query | Standard RAG (Depth 0) | GraphRAG (Depth 2+) |
-| :--- | :--- | :--- | :--- |
-| **Supply Chain Impact** | "How does a strike at the Lithium mine affect the production of the new EV model?" | *Fails.* Retrieves documents about the mine and the EV, but misses the intermediate supplier of batteries. | *Succeeds.* Traverses: `Lithium Mine -> (supplies) -> Battery Corp -> (supplies) -> EV Manufacturer`. |
-| **Corporate Mergers** | "Who is the CEO of the parent company of WhatsApp?" | *Fails.* Might retrieve WhatsApp's CEO or mention Facebook, but struggles to connect the current Meta hierarchy if not explicitly stated in one chunk. | *Succeeds.* Traverses: `WhatsApp -> (acquired by) -> Facebook -> (rebranded to) -> Meta -> (CEO is) -> Mark Zuckerberg`. |
-| **Medical Research** | "What protein pathway is targeted by the drug treating Disease X?" | *Fails.* Finds chunks about Disease X and the drug, but misses the specific research paper linking the drug to the pathway. | *Succeeds.* Traverses: `Disease X -> (treated by) -> Drug Y -> (inhibits) -> Enzyme Z -> (part of) -> Protein Pathway A`. |
+You can run the benchmarks yourself against your local backend instance:
+
+```bash
+export GEMINI_API_KEY="your_api_key_here"
+python3 benchmarks/run_benchmarks.py
+```
+
+### Example Benchmark Output
+
+```text
+==================================================
+GraphRAG Empirical Benchmarks
+==================================================
+
+1. Ingesting test paragraphs into Knowledge Graph...
+  -> Ingesting scenario 1: Supply Chain Impact...
+  -> Ingesting scenario 2: Corporate Mergers...
+  -> Ingesting scenario 3: Medical Research...
+
+2. Running Queries (Standard RAG vs GraphRAG)...
+
+SCENARIO: Supply Chain Impact
+QUERY: How does a strike at the Lithium mine affect the production of the new EV model?
+
+  [Standard RAG - Depth 0] - Retrieved 2 entities
+  Answer: I don't have enough context to connect the mine to the EV model.
+
+  [GraphRAG - Depth 2] - Retrieved 5 entities
+  Answer: The strike at the Salar de Atacama Lithium Mine halts operations, which stops the supply of high-grade lithium carbonate to ElectroChem Industries. Without this material, ElectroChem cannot supply the next-generation solid-state battery packs to Apex Motors, which will delay or halt the production of the "Apex Nova EV".
+
+--------------------------------------------------
+
+SCENARIO: Corporate Mergers
+QUERY: Who is the CEO of the parent company of WhatsApp?
+
+  [Standard RAG - Depth 0] - Retrieved 1 entities
+  Answer: The context does not mention the parent company of WhatsApp.
+
+  [GraphRAG - Depth 2] - Retrieved 4 entities
+  Answer: Mark Zuckerberg is the CEO of Meta Platforms Inc., which is the parent company of WhatsApp (having acquired it as Facebook Inc. and later rebranded).
+```
