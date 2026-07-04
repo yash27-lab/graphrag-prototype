@@ -1,0 +1,1 @@
+"""GraphRAG prototype backend package."""

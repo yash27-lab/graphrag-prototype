@@ -1,7 +1,0 @@
-==================================================
-GraphRAG Empirical Benchmarks
-==================================================
-
-1. Ingesting test paragraphs into Knowledge Graph...
-  -> Ingesting scenario 1: Supply Chain Impact...
-API Error: HTTP Error 500: Internal Server Error
