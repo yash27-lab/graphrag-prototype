@@ -1,7 +1,8 @@
 import { useRef, useEffect, useState } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
+import type { ForceGraphMethods, NodeObject } from 'react-force-graph-2d';
 
-interface GraphData {
+export interface GraphData {
   nodes: Array<{ id: string; label: string; group?: string }>;
   links: Array<{ source: string; target: string; label?: string }>;
 }
@@ -12,16 +13,28 @@ interface GraphVisualizationProps {
   repulsion?: number;
 }
 
+// Runtime-only properties the force-graph library attaches to nodes,
+// plus the pill dimensions we cache between the two canvas passes.
+type PillNode = NodeObject & {
+  label?: string;
+  color?: string;
+  __bckgDimensions?: number[];
+};
+
+interface ChargeForce {
+  strength: (value: number) => void;
+}
+
 export const GraphVisualization: React.FC<GraphVisualizationProps> = ({ data, theme = 'light', repulsion = 400 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const fgRef = useRef<any>(null);
+  const fgRef = useRef<ForceGraphMethods | undefined>(undefined);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
 
   useEffect(() => {
     if (!containerRef.current) return;
 
     const resizeObserver = new ResizeObserver((entries) => {
-      for (let entry of entries) {
+      for (const entry of entries) {
         setDimensions({
           width: entry.contentRect.width,
           height: entry.contentRect.height,
@@ -36,10 +49,11 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({ data, th
 
   useEffect(() => {
     if (data && fgRef.current) {
-      fgRef.current.d3Force('charge').strength(-repulsion);
+      const charge = fgRef.current.d3Force('charge') as unknown as ChargeForce | undefined;
+      charge?.strength(-repulsion);
       // Zoom to fit on new data
       setTimeout(() => {
-        fgRef.current.zoomToFit(400, 50);
+        fgRef.current?.zoomToFit(400, 50);
       }, 500);
     }
   }, [data, repulsion]);
@@ -71,7 +85,8 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({ data, th
         linkDirectionalParticleWidth={1.5}
         linkDirectionalParticleSpeed={0.005}
         linkDirectionalParticleColor={() => theme === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)'}
-        nodeCanvasObject={(node, ctx, globalScale) => {
+        nodeCanvasObject={(rawNode, ctx, globalScale) => {
+          const node = rawNode as PillNode;
           const label = node.label || '';
           const fontSize = 12/globalScale;
           ctx.font = `500 ${fontSize}px Inter, sans-serif`;
@@ -100,7 +115,7 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({ data, th
           ctx.fill();
 
           // Node pill border
-          ctx.strokeStyle = (node as any).color || (theme === 'dark' ? '#ededed' : '#111111');
+          ctx.strokeStyle = node.color || (theme === 'dark' ? '#ededed' : '#111111');
           ctx.lineWidth = 1.5 / globalScale;
           ctx.stroke();
 
@@ -110,10 +125,11 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({ data, th
           ctx.fillStyle = theme === 'dark' ? '#ededed' : '#111111';
           ctx.fillText(label, node.x!, node.y!);
           
-          (node as any).__bckgDimensions = bckgDimensions; // to re-use in nodePointerAreaPaint
+          node.__bckgDimensions = bckgDimensions; // to re-use in nodePointerAreaPaint
         }}
-        nodePointerAreaPaint={(node, color, ctx) => {
-          const bckgDimensions = (node as any).__bckgDimensions;
+        nodePointerAreaPaint={(rawNode, color, ctx) => {
+          const node = rawNode as PillNode;
+          const bckgDimensions = node.__bckgDimensions;
           if (bckgDimensions) {
             ctx.fillStyle = color;
             ctx.fillRect(node.x! - bckgDimensions[0] / 2, node.y! - bckgDimensions[1] / 2, bckgDimensions[0], bckgDimensions[1]);

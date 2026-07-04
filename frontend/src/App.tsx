@@ -4,8 +4,17 @@ import { Moon, Sun, Settings, X } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 import './App.css';
 import { GraphVisualization } from './components/GraphVisualization';
+import type { GraphData } from './components/GraphVisualization';
 
-const API_URL = 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+interface QueryMetrics {
+  seed_entities: string[];
+  nodes_retrieved: number;
+  edges_retrieved: number;
+  depth_used: number;
+  estimated_tokens: number;
+}
 
 // Custom hook for a beautiful typewriter effect
 const useTypewriter = (text: string, speed: number = 10) => {
@@ -34,10 +43,10 @@ function App() {
   const [isIngesting, setIsIngesting] = useState(false);
   
   const [response, setResponse] = useState('');
-  const [graphData, setGraphData] = useState<any>(null);
+  const [graphData, setGraphData] = useState<GraphData | null>(null);
   const [isQuerying, setIsQuerying] = useState(false);
   const [depth, setDepth] = useState(1);
-  const [metrics, setMetrics] = useState<any>(null);
+  const [metrics, setMetrics] = useState<QueryMetrics | null>(null);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   const animatedResponse = useTypewriter(response);
@@ -56,6 +65,16 @@ function App() {
     setApiKey(localStorage.getItem('apiKey') || '');
     setModel(localStorage.getItem('model') || 'gemini-2.5-flash');
     setRepulsion(Number(localStorage.getItem('repulsion')) || 400);
+
+    // The backend persists the graph to disk; load it so a page refresh
+    // (or server restart) does not present an empty canvas.
+    axios.get<GraphData>(`${API_URL}/graph`)
+      .then((res) => {
+        if (res.data.nodes?.length > 0) {
+          setGraphData(res.data);
+        }
+      })
+      .catch(() => { /* backend not up yet; the empty state explains itself */ });
   }, []);
 
   const toggleTheme = () => {
@@ -94,9 +113,10 @@ function App() {
         setResponse('Knowledge Graph successfully updated! You can now query it or visualize the full structure.');
         setMetrics(null);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      toast.error(err.response?.data?.detail || 'Failed to ingest data. Is the backend running and API key set?', { id: loadingToast });
+      const detail = axios.isAxiosError(err) ? err.response?.data?.detail : undefined;
+      toast.error(detail || 'Failed to ingest data. Is the backend running and API key set?', { id: loadingToast });
     } finally {
       setIsIngesting(false);
     }
@@ -117,12 +137,27 @@ function App() {
         setMetrics(res.data.metrics);
       }
       toast.success('Response synthesized', { id: loadingToast });
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      toast.error(err.response?.data?.detail || 'Failed to query data.', { id: loadingToast });
+      const detail = axios.isAxiosError(err) ? err.response?.data?.detail : undefined;
+      toast.error(detail || 'Failed to query data.', { id: loadingToast });
       setResponse('An error occurred while querying the graph.');
     } finally {
       setIsQuerying(false);
+    }
+  };
+
+  const handleClearKnowledgeBase = async () => {
+    if (!window.confirm('Delete all ingested entities and relationships? This cannot be undone.')) return;
+    try {
+      await axios.delete(`${API_URL}/graph`);
+      setGraphData(null);
+      setResponse('');
+      setMetrics(null);
+      setShowSettings(false);
+      toast.success('Knowledge base cleared');
+    } catch {
+      toast.error('Failed to clear the knowledge base. Is the backend running?');
     }
   };
 
@@ -142,7 +177,7 @@ function App() {
               </button>
             </div>
           </div>
-          <p>Powered by Neo4j/NetworkX & Gemini</p>
+          <p>Vector search + graph traversal with ChromaDB, NetworkX, and Gemini</p>
         </div>
 
         <div className="ingest-section">
@@ -197,10 +232,10 @@ function App() {
             
             {metrics && !isQuerying && (
               <div className="metrics-box">
-                <strong>Context Pruning Metrics:</strong><br/>
-                Nodes retrieved: {metrics.nodes_retrieved}<br/>
-                Estimated tokens sent to LLM: ~{metrics.estimated_tokens}<br/>
-                <em>(Filtered from millions of possible tokens down to exactly what matters)</em>
+                <strong>Retrieval Metrics</strong><br/>
+                Entry points: {metrics.seed_entities.join(', ')}<br/>
+                Context: {metrics.nodes_retrieved} entities, {metrics.edges_retrieved} relationships at depth {metrics.depth_used}<br/>
+                Estimated context tokens sent to the LLM: ~{metrics.estimated_tokens}
               </div>
             )}
           </div>
@@ -257,6 +292,14 @@ function App() {
                 style={{ width: '100%' }}
               />
               <p className="setting-hint">Increase this if your graph nodes are too clumped together.</p>
+            </div>
+
+            <div className="setting-group">
+              <label>Danger Zone</label>
+              <button className="danger-btn" onClick={handleClearKnowledgeBase}>
+                Clear Knowledge Base
+              </button>
+              <p className="setting-hint">Deletes every stored entity, relationship, and embedding.</p>
             </div>
 
             <button className="save-btn" onClick={handleSaveSettings}>Save & Close</button>

@@ -437,3 +437,17 @@ button:disabled {
   margin-top: 8px;
   width: 100%;
 }
+
+.danger-btn {
+  width: 100%;
+  background-color: transparent;
+  color: var(--error);
+  border: 1px solid var(--error);
+  box-shadow: none;
+}
+
+.danger-btn:hover:not(:disabled) {
+  background-color: var(--error);
+  border-color: var(--error);
+  color: #ffffff;
+}
