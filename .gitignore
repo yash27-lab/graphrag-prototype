@@ -1,16 +1,17 @@
 # Python
 backend/venv/
-backend/__pycache__/
-backend/*.pyc
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
 .env
+
+# Runtime data (knowledge graph + vector index)
+backend/data/
 
 # Node
 frontend/node_modules/
 frontend/dist/
 
-# Mac
+# macOS
 .DS_Store
-
-# ChromaDB
-backend/chroma_db/
-backend/chromadb/
