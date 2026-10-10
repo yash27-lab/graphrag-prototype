@@ -15,6 +15,10 @@ from graphrag.schemas import (
 class SchemaBoundaryTests(unittest.TestCase):
     """Protect API size and retrieval-budget boundaries."""
 
+    def test_ingest_oversized(self):
+        with self.assertRaises(ValidationError):
+            IngestRequest(text="x" * (MAX_INGEST_CHARS + 1))
+
     def test_ingest_maximum(self):
         request = IngestRequest(text="x" * MAX_INGEST_CHARS)
         self.assertEqual(len(request.text), MAX_INGEST_CHARS)
