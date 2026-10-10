@@ -15,6 +15,10 @@ from graphrag.schemas import (
 class SchemaBoundaryTests(unittest.TestCase):
     """Protect API size and retrieval-budget boundaries."""
 
+    def test_ingest_null(self):
+        with self.assertRaises(ValidationError):
+            IngestRequest(text=None)
+
     def test_ingest_missing(self):
         with self.assertRaises(ValidationError):
             IngestRequest()
