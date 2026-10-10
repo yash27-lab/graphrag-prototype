@@ -15,6 +15,9 @@ from graphrag.schemas import (
 class SchemaBoundaryTests(unittest.TestCase):
     """Protect API size and retrieval-budget boundaries."""
 
+    def test_depth_maximum(self):
+        self.assertEqual(QueryRequest(query="q", depth=MAX_TRAVERSAL_DEPTH).depth, MAX_TRAVERSAL_DEPTH)
+
     def test_depth_zero(self):
         self.assertEqual(QueryRequest(query="q", depth=0).depth, 0)
 
