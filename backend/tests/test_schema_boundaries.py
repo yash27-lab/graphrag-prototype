@@ -15,6 +15,10 @@ from graphrag.schemas import (
 class SchemaBoundaryTests(unittest.TestCase):
     """Protect API size and retrieval-budget boundaries."""
 
+    def test_top_k_zero(self):
+        with self.assertRaises(ValidationError):
+            QueryRequest(query="q", top_k=0)
+
     def test_top_k_maximum(self):
         self.assertEqual(QueryRequest(query="q", top_k=10).top_k, 10)
 
