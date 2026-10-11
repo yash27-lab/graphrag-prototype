@@ -8,6 +8,12 @@ from graphrag.graph_store import GraphStore
 
 
 class GraphContractTests(unittest.TestCase):
+    def test_clear_restart(self):
+        self.chain()
+        self.store.clear()
+        self.assertFalse(self.path.exists())
+        self.assertEqual(GraphStore(str(self.path)).stats(), (0, 0))
+
     def test_unicode_roundtrip(self):
         self.store.upsert([{"id": "研究", "description": "🧬 café"}], [])
         reloaded = GraphStore(str(self.path))
