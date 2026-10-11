@@ -8,6 +8,11 @@ from graphrag.graph_store import GraphStore
 
 
 class GraphContractTests(unittest.TestCase):
+    def test_unknown_node_filter(self):
+        self.chain()
+        self.assertEqual(self.store.node_records(["missing", "B"])[0]["id"], "B")
+        self.assertEqual(len(self.store.node_records(["missing", "B"])), 1)
+
     def test_empty_node_filter(self):
         self.chain()
         self.assertEqual(self.store.node_records([]), [])
