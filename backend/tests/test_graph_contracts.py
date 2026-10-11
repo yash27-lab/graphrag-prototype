@@ -8,6 +8,11 @@ from graphrag.graph_store import GraphStore
 
 
 class GraphContractTests(unittest.TestCase):
+    def test_disconnected(self):
+        self.chain()
+        self.store.upsert([{"id": "D"}], [])
+        self.assertEqual(self.store.expand(["A"], 100), {"A", "B", "C"})
+
     def test_self_loop(self):
         self.store.upsert([{"id": "A"}], [{"source": "A", "target": "A"}])
         self.assertEqual(self.store.expand(["A"], 100), {"A"})
