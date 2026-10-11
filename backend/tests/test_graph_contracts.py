@@ -8,6 +8,10 @@ from graphrag.graph_store import GraphStore
 
 
 class GraphContractTests(unittest.TestCase):
+    def test_empty_edge_filter(self):
+        self.chain()
+        self.assertEqual(self.store.edge_records([]), [])
+
     def test_edge_induced_filter(self):
         self.chain()
         self.assertEqual(self.store.edge_records(["A"]), [])
