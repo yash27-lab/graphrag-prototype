@@ -8,6 +8,11 @@ from graphrag.graph_store import GraphStore
 
 
 class GraphContractTests(unittest.TestCase):
+    def test_cycle_termination(self):
+        self.chain()
+        self.store.upsert([], [{"source": "C", "target": "A"}])
+        self.assertEqual(self.store.expand(["A"], 100), {"A", "B", "C"})
+
     def test_generator_seeds(self):
         self.chain()
         self.assertEqual(self.store.expand(iter(["A"]), 2), {"A", "B", "C"})
