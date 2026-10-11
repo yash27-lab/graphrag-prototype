@@ -8,6 +8,12 @@ from graphrag.graph_store import GraphStore
 
 
 class GraphContractTests(unittest.TestCase):
+    def test_atomic_save_cleanup(self):
+        self.chain()
+        self.assertTrue(self.path.exists())
+        self.assertFalse(Path(str(self.path) + ".tmp").exists())
+        self.assertEqual(GraphStore(str(self.path)).stats(), (3, 2))
+
     def test_clear_idempotence(self):
         self.store.clear()
         self.chain()
