@@ -8,6 +8,12 @@ from graphrag.graph_store import GraphStore
 
 
 class GraphContractTests(unittest.TestCase):
+    def test_entity_update(self):
+        self.chain()
+        self.store.upsert([{"id": "A", "description": "updated"}], [])
+        self.assertEqual(self.store.stats(), (3, 2))
+        self.assertEqual(self.store.node_records(["A"])[0]["description"], "updated")
+
     def test_empty_edge_filter(self):
         self.chain()
         self.assertEqual(self.store.edge_records([]), [])
