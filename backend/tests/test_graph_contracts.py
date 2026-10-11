@@ -8,6 +8,10 @@ from graphrag.graph_store import GraphStore
 
 
 class GraphContractTests(unittest.TestCase):
+    def test_empty_seeds(self):
+        self.chain()
+        self.assertEqual(self.store.expand([], 3), set())
+
     def test_empty_records(self):
         self.assertEqual(self.store.node_records(), [])
         self.assertEqual(self.store.edge_records(), [])
