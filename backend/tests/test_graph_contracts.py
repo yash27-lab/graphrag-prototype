@@ -8,6 +8,13 @@ from graphrag.graph_store import GraphStore
 
 
 class GraphContractTests(unittest.TestCase):
+    def test_edge_induced_filter(self):
+        self.chain()
+        self.assertEqual(self.store.edge_records(["A"]), [])
+        edges = self.store.edge_records(["A", "B"])
+        self.assertEqual(len(edges), 1)
+        self.assertEqual({edges[0]["source"], edges[0]["target"]}, {"A", "B"})
+
     def test_unknown_node_filter(self):
         self.chain()
         self.assertEqual(self.store.node_records(["missing", "B"])[0]["id"], "B")
