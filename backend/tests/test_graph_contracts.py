@@ -8,6 +8,10 @@ from graphrag.graph_store import GraphStore
 
 
 class GraphContractTests(unittest.TestCase):
+    def test_generator_seeds(self):
+        self.chain()
+        self.assertEqual(self.store.expand(iter(["A"]), 2), {"A", "B", "C"})
+
     def test_duplicate_seeds(self):
         self.chain()
         self.assertEqual(self.store.expand(["A", "A"], 1), {"A", "B"})
