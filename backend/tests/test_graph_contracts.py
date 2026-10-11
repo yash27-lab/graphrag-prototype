@@ -8,6 +8,13 @@ from graphrag.graph_store import GraphStore
 
 
 class GraphContractTests(unittest.TestCase):
+    def test_clear_idempotence(self):
+        self.store.clear()
+        self.chain()
+        self.store.clear()
+        self.store.clear()
+        self.assertEqual(self.store.stats(), (0, 0))
+
     def test_clear_restart(self):
         self.chain()
         self.store.clear()
