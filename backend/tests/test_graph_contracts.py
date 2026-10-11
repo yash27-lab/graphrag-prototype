@@ -8,6 +8,11 @@ from graphrag.graph_store import GraphStore
 
 
 class GraphContractTests(unittest.TestCase):
+    def test_unicode_roundtrip(self):
+        self.store.upsert([{"id": "研究", "description": "🧬 café"}], [])
+        reloaded = GraphStore(str(self.path))
+        self.assertEqual(reloaded.node_records()[0]["description"], "🧬 café")
+
     def test_none_attributes(self):
         self.chain()
         self.store.upsert([{"id": "A", "type": None, "description": None}], [])
