@@ -14,6 +14,9 @@ from graphrag.pipeline import (
 class PipelineContractTests(unittest.TestCase):
     """Exercise pure helpers without importing Gemini or Chroma."""
 
+    def test_empty_payload(self):
+        self.assertEqual(_payload([], []), {"nodes": [], "links": []})
+
     def test_token_whitespace(self):
         self.assertEqual(estimate_tokens("one two three"), estimate_tokens("one\n two\tthree"))
         self.assertEqual(estimate_tokens("one two three"), 3)
