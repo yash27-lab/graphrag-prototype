@@ -14,6 +14,9 @@ from graphrag.pipeline import (
 class PipelineContractTests(unittest.TestCase):
     """Exercise pure helpers without importing Gemini or Chroma."""
 
+    def test_entities_blank(self):
+        self.assertEqual(_clean_entities([{}, {"id": None}, {"id": "  "}]), [])
+
     def test_entities_non_dict(self):
         self.assertEqual(_clean_entities([None, "bad", 1, [], {"id": "ok"}]), [{"id": "ok"}])
 
