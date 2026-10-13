@@ -125,11 +125,13 @@ def _format_context(
     node_records: List[Dict[str, str]], edge_records: List[Dict[str, str]]
 ) -> str:
     lines = ["Entities:"]
-    for node in node_records:
+    for node in sorted(node_records, key=lambda node: node["id"]):
         lines.append(f"- {node['id']} ({node['type']}): {node['description']}")
     lines.append("")
     lines.append("Relationships:")
-    for edge in edge_records:
+    for edge in sorted(
+        edge_records, key=lambda edge: (edge["source"], edge["target"], edge["relationship"])
+    ):
         lines.append(
             f"- {edge['source']} --[{edge['relationship']}]--> "
             f"{edge['target']}: {edge['description']}"
