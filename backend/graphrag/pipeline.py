@@ -5,11 +5,15 @@ Retrieval: vector search for entry points -> bounded graph traversal ->
 context assembly -> LLM synthesis over the pruned context only.
 """
 
-from typing import Any, Dict, List, Optional
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from .graph_store import GraphStore
-from .llm import GeminiService
-from .vector_store import VectorStore
+
+if TYPE_CHECKING:
+    from .llm import GeminiService
+    from .vector_store import VectorStore
 
 
 def estimate_tokens(text: str) -> int:
@@ -122,11 +126,13 @@ def _format_context(
     node_records: List[Dict[str, str]], edge_records: List[Dict[str, str]]
 ) -> str:
     lines = ["Entities:"]
-    for node in node_records:
+    for node in sorted(node_records, key=lambda node: node["id"]):
         lines.append(f"- {node['id']} ({node['type']}): {node['description']}")
     lines.append("")
     lines.append("Relationships:")
-    for edge in edge_records:
+    for edge in sorted(
+        edge_records, key=lambda edge: (edge["source"], edge["target"], edge["relationship"])
+    ):
         lines.append(
             f"- {edge['source']} --[{edge['relationship']}]--> "
             f"{edge['target']}: {edge['description']}"
