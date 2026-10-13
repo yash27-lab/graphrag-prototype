@@ -14,6 +14,10 @@ from graphrag.pipeline import (
 class PipelineContractTests(unittest.TestCase):
     """Exercise pure helpers without importing Gemini or Chroma."""
 
+    def test_relations_trim(self):
+        self.assertEqual(_clean_relationships([{"source": " A ", "target": " B "}]),
+                         [{"source": "A", "target": "B"}])
+
     def test_relations_endpoints(self):
         self.assertEqual(_clean_relationships([{"source": "A"}, {"target": "B"},
                                              {"source": " ", "target": "B"}]), [])
