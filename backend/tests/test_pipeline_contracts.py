@@ -14,6 +14,10 @@ from graphrag.pipeline import (
 class PipelineContractTests(unittest.TestCase):
     """Exercise pure helpers without importing Gemini or Chroma."""
 
+    def test_relations_non_list(self):
+        for raw in (None, {}, "text", 42):
+            self.assertEqual(_clean_relationships(raw), [])
+
     def test_entities_immutable(self):
         raw = [{"id": " A "}]
         _clean_entities(raw)
