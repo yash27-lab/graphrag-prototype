@@ -14,6 +14,11 @@ from graphrag.pipeline import (
 class PipelineContractTests(unittest.TestCase):
     """Exercise pure helpers without importing Gemini or Chroma."""
 
+    def test_context_node_order(self):
+        nodes = [{"id": n, "type": "T", "description": n} for n in ("B", "A")]
+        self.assertEqual(_format_context(nodes, []), _format_context(list(reversed(nodes)), []))
+        self.assertEqual(nodes[0]["id"], "B")
+
     def test_empty_payload(self):
         self.assertEqual(_payload([], []), {"nodes": [], "links": []})
 
