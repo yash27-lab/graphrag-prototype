@@ -5,11 +5,14 @@ Retrieval: vector search for entry points -> bounded graph traversal ->
 context assembly -> LLM synthesis over the pruned context only.
 """
 
-from typing import Any, Dict, List, Optional
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from .graph_store import GraphStore
-from .llm import GeminiService
-from .vector_store import VectorStore
+if TYPE_CHECKING:
+    from .llm import GeminiService
+    from .vector_store import VectorStore
 
 
 def estimate_tokens(text: str) -> int:
