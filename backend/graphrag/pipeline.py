@@ -10,6 +10,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from .graph_store import GraphStore
+
 if TYPE_CHECKING:
     from .llm import GeminiService
     from .vector_store import VectorStore
