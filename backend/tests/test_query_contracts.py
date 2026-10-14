@@ -7,6 +7,10 @@ from graphrag.pipeline import GraphRAGPipeline, estimate_tokens
 
 
 class QueryContractTests(unittest.TestCase):
+    def test_node_filter(self):
+        self.query()
+        self.graph.node_records.assert_called_once_with({"A", "B"})
+
     def test_traversal_arguments(self):
         self.query()
         self.graph.expand.assert_called_once_with(["A"], 1)
