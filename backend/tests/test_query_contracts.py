@@ -7,6 +7,10 @@ from graphrag.pipeline import GraphRAGPipeline, estimate_tokens
 
 
 class QueryContractTests(unittest.TestCase):
+    def test_duplicate_seeds(self):
+        self.vectors.find_entry_points.return_value = ["A", "A"]
+        self.assertEqual(self.query()["metrics"]["seed_entities"], ["A"])
+
     def test_stale_seed_metrics(self):
         self.vectors.find_entry_points.return_value = ["A", "missing"]
         self.assertEqual(self.query()["metrics"]["seed_entities"], ["A"])
