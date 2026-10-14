@@ -1,0 +1,30 @@
+"""Pipeline orchestration contracts without network or embedding downloads."""
+
+import unittest
+from unittest.mock import Mock
+
+from graphrag.pipeline import GraphRAGPipeline, estimate_tokens
+
+
+class QueryContractTests(unittest.TestCase):
+    def test_stale_seed_metrics(self):
+        self.vectors.find_entry_points.return_value = ["A", "missing"]
+        self.assertEqual(self.query()["metrics"]["seed_entities"], ["A"])
+
+    def setUp(self):
+        self.graph = Mock()
+        self.graph.expand.return_value = {"A", "B"}
+        self.graph.node_records.return_value = [
+            {"id": n, "type": "T", "description": n} for n in ("A", "B")
+        ]
+        self.graph.edge_records.return_value = [
+            {"source": "A", "target": "B", "relationship": "r", "description": ""}
+        ]
+        self.vectors = Mock()
+        self.vectors.find_entry_points.return_value = ["A"]
+        self.llm = Mock()
+        self.llm.synthesize_answer.return_value = "answer"
+        self.pipeline = GraphRAGPipeline(self.graph, self.vectors, self.llm)
+
+    def query(self, **kwargs):
+        return self.pipeline.query("question", depth=1, top_k=3, model="model", **kwargs)
