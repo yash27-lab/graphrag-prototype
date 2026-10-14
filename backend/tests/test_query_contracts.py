@@ -7,6 +7,9 @@ from graphrag.pipeline import GraphRAGPipeline, estimate_tokens
 
 
 class QueryContractTests(unittest.TestCase):
+    def test_answer_passthrough(self):
+        self.assertEqual(self.query()["answer"], "answer")
+
     def test_synthesis_credentials(self):
         self.query(api_key="synthetic-test-key")
         args, kwargs = self.llm.synthesize_answer.call_args
