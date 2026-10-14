@@ -7,6 +7,10 @@ from graphrag.pipeline import GraphRAGPipeline, estimate_tokens
 
 
 class QueryContractTests(unittest.TestCase):
+    def test_traversal_arguments(self):
+        self.query()
+        self.graph.expand.assert_called_once_with(["A"], 1)
+
     def test_retrieval_arguments(self):
         self.query()
         self.vectors.find_entry_points.assert_called_once_with("question", 3)
