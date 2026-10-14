@@ -7,6 +7,12 @@ from graphrag.pipeline import GraphRAGPipeline, estimate_tokens
 
 
 class QueryContractTests(unittest.TestCase):
+    def test_stale_index(self):
+        self.graph.expand.return_value = set()
+        result = self.query()
+        self.assertEqual(result["graph"], {"nodes": [], "links": []})
+        self.llm.synthesize_answer.assert_not_called()
+
     def test_no_seeds(self):
         self.vectors.find_entry_points.return_value = []
         result = self.query()
