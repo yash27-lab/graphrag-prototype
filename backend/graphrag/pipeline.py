@@ -77,7 +77,7 @@ class GraphRAGPipeline:
             "answer": answer,
             "graph": _payload(node_records, edge_records),
             "metrics": {
-                "seed_entities": sorted(set(seeds)),
+                "seed_entities": sorted(set(seeds).intersection(context_nodes)),
                 "nodes_retrieved": len(node_records),
                 "edges_retrieved": len(edge_records),
                 "depth_used": depth,
