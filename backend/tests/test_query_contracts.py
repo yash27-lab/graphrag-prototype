@@ -7,6 +7,12 @@ from graphrag.pipeline import GraphRAGPipeline, estimate_tokens
 
 
 class QueryContractTests(unittest.TestCase):
+    def test_metrics_counts(self):
+        metrics = self.query()["metrics"]
+        self.assertEqual(metrics["nodes_retrieved"], 2)
+        self.assertEqual(metrics["edges_retrieved"], 1)
+        self.assertEqual(metrics["depth_used"], 1)
+
     def test_answer_passthrough(self):
         self.assertEqual(self.query()["answer"], "answer")
 
