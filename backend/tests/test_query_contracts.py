@@ -7,6 +7,11 @@ from graphrag.pipeline import GraphRAGPipeline, estimate_tokens
 
 
 class QueryContractTests(unittest.TestCase):
+    def test_token_metrics(self):
+        result = self.query()
+        context = self.llm.synthesize_answer.call_args.args[1]
+        self.assertEqual(result["metrics"]["estimated_tokens"], estimate_tokens(context))
+
     def test_metrics_counts(self):
         metrics = self.query()["metrics"]
         self.assertEqual(metrics["nodes_retrieved"], 2)
