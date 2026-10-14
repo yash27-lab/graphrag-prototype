@@ -7,6 +7,12 @@ from graphrag.pipeline import GraphRAGPipeline, estimate_tokens
 
 
 class QueryContractTests(unittest.TestCase):
+    def test_synthesis_credentials(self):
+        self.query(api_key="synthetic-test-key")
+        args, kwargs = self.llm.synthesize_answer.call_args
+        self.assertEqual((args[0], args[2]), ("question", "model"))
+        self.assertEqual(kwargs, {"api_key": "synthetic-test-key"})
+
     def test_edge_filter(self):
         self.query()
         self.graph.edge_records.assert_called_once_with({"A", "B"})
