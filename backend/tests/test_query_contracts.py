@@ -7,6 +7,11 @@ from graphrag.pipeline import GraphRAGPipeline, estimate_tokens
 
 
 class QueryContractTests(unittest.TestCase):
+    def test_reset_both_stores(self):
+        self.pipeline.reset()
+        self.graph.clear.assert_called_once_with()
+        self.vectors.clear.assert_called_once_with()
+
     def test_synthesis_failure(self):
         self.llm.synthesize_answer.side_effect = RuntimeError("synthesis failed")
         with self.assertRaisesRegex(RuntimeError, "synthesis failed"):
