@@ -7,6 +7,12 @@ from graphrag.pipeline import GraphRAGPipeline, estimate_tokens
 
 
 class QueryContractTests(unittest.TestCase):
+    def test_retrieval_failure(self):
+        self.vectors.find_entry_points.side_effect = RuntimeError("retrieval failed")
+        with self.assertRaisesRegex(RuntimeError, "retrieval failed"):
+            self.query()
+        self.llm.synthesize_answer.assert_not_called()
+
     def test_token_metrics(self):
         result = self.query()
         context = self.llm.synthesize_answer.call_args.args[1]
