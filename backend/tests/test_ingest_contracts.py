@@ -7,6 +7,12 @@ from graphrag.pipeline import GraphRAGPipeline
 
 
 class IngestContractTests(unittest.TestCase):
+    def test_vector_failure(self):
+        self.vectors.upsert_entities.side_effect = RuntimeError("index failed")
+        with self.assertRaisesRegex(RuntimeError, "index failed"):
+            self.ingest()
+        self.graph.node_records.assert_not_called()
+
     def test_graph_failure(self):
         self.graph.upsert.side_effect = RuntimeError("graph failed")
         with self.assertRaisesRegex(RuntimeError, "graph failed"):
