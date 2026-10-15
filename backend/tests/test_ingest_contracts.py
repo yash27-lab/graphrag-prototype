@@ -7,6 +7,12 @@ from graphrag.pipeline import GraphRAGPipeline
 
 
 class IngestContractTests(unittest.TestCase):
+    def test_extraction_key(self):
+        self.ingest(api_key="synthetic-test-key")
+        self.llm.extract_graph.assert_called_once_with(
+            "source text", "model", api_key="synthetic-test-key"
+        )
+
     def test_extraction_arguments(self):
         self.ingest()
         self.llm.extract_graph.assert_called_once_with("source text", "model", api_key=None)
