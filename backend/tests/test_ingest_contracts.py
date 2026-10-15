@@ -7,6 +7,11 @@ from graphrag.pipeline import GraphRAGPipeline
 
 
 class IngestContractTests(unittest.TestCase):
+    def test_normalized_vector_entities(self):
+        self.ingest()
+        self.assertEqual(self.vectors.upsert_entities.call_args.args[0],
+                         self.graph.upsert.call_args.args[0])
+
     def test_normalized_graph_entities(self):
         self.ingest()
         entities, _ = self.graph.upsert.call_args.args
