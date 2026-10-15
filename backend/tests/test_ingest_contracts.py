@@ -7,6 +7,13 @@ from graphrag.pipeline import GraphRAGPipeline
 
 
 class IngestContractTests(unittest.TestCase):
+    def test_extract_failure(self):
+        self.llm.extract_graph.side_effect = RuntimeError("extract failed")
+        with self.assertRaisesRegex(RuntimeError, "extract failed"):
+            self.ingest()
+        self.graph.upsert.assert_not_called()
+        self.vectors.upsert_entities.assert_not_called()
+
     def test_no_synthesis(self):
         self.ingest()
         self.llm.synthesize_answer.assert_not_called()
