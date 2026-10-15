@@ -7,6 +7,13 @@ from graphrag.pipeline import GraphRAGPipeline
 
 
 class IngestContractTests(unittest.TestCase):
+    def test_mutation_order(self):
+        events = Mock()
+        events.attach_mock(self.graph.upsert, "graph")
+        events.attach_mock(self.vectors.upsert_entities, "vectors")
+        self.ingest()
+        self.assertEqual([c[0] for c in events.mock_calls], ["graph", "vectors"])
+
     def test_vector_failure(self):
         self.vectors.upsert_entities.side_effect = RuntimeError("index failed")
         with self.assertRaisesRegex(RuntimeError, "index failed"):
