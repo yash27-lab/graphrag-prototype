@@ -7,6 +7,9 @@ from graphrag.pipeline import GraphRAGPipeline
 
 
 class IngestContractTests(unittest.TestCase):
+    def test_status(self):
+        self.assertEqual(self.ingest()["status"], "success")
+
     def test_non_list_relationships(self):
         self.llm.extract_graph.return_value["relationships"] = "invalid"
         self.assertEqual(self.ingest()["relationships_count"], 0)
