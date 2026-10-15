@@ -7,6 +7,10 @@ from graphrag.pipeline import GraphRAGPipeline
 
 
 class IngestContractTests(unittest.TestCase):
+    def test_no_synthesis(self):
+        self.ingest()
+        self.llm.synthesize_answer.assert_not_called()
+
     def test_graph_payload(self):
         self.assertEqual(self.ingest()["graph"], {
             "nodes": [{"id": "A", "label": "A", "group": "Concept"}], "links": []
