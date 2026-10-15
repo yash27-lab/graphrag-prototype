@@ -7,6 +7,11 @@ from graphrag.pipeline import GraphRAGPipeline
 
 
 class IngestContractTests(unittest.TestCase):
+    def test_relationship_normalization(self):
+        self.llm.extract_graph.return_value["relationships"] = [{"source": " A ", "target": " B "}]
+        self.ingest()
+        self.assertEqual(self.graph.upsert.call_args.args[1], [{"source": "A", "target": "B"}])
+
     def test_normalized_vector_entities(self):
         self.ingest()
         self.assertEqual(self.vectors.upsert_entities.call_args.args[0],
