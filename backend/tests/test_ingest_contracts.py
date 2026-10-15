@@ -7,6 +7,11 @@ from graphrag.pipeline import GraphRAGPipeline
 
 
 class IngestContractTests(unittest.TestCase):
+    def test_empty_extraction(self):
+        self.llm.extract_graph.return_value = {}
+        result = self.ingest()
+        self.assertEqual((result["entities_count"], result["relationships_count"]), (0, 0))
+
     def test_relationship_count(self):
         self.llm.extract_graph.return_value["relationships"] = [
             {"source": "A", "target": "B"}, {"source": "A"}, None
