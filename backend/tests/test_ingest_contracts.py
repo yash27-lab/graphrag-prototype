@@ -7,6 +7,11 @@ from graphrag.pipeline import GraphRAGPipeline
 
 
 class IngestContractTests(unittest.TestCase):
+    def test_graph_payload(self):
+        self.assertEqual(self.ingest()["graph"], {
+            "nodes": [{"id": "A", "label": "A", "group": "Concept"}], "links": []
+        })
+
     def test_status(self):
         self.assertEqual(self.ingest()["status"], "success")
 
